@@ -50,7 +50,7 @@ load_dotenv(".env")
 
 class AgenticShoppingAI:
 
-    def __init__(self):
+    def __init__(self, model_name="llama-3.3-70b-versatile"):
 
         # =================================================
         # API KEYS
@@ -69,7 +69,7 @@ class AgenticShoppingAI:
         # =================================================
 
         self.llm = ChatGroq(
-            model="llama-3.3-70b-versatile",
+            model=model_name,
             temperature=0
         )
 

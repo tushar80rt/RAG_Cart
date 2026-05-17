@@ -94,16 +94,25 @@ st.markdown("---")
 # =========================================================
 from agent import AgenticShoppingAI
 
-# Initialize Agent in Session State to prevent re-loading on every interaction
-if 'agent' not in st.session_state:
-    with st.spinner("🚀 Initializing AI Shopping Agent..."):
-        st.session_state.agent = AgenticShoppingAI()
-
 # =========================================================
-# SIDEBAR
+# SIDEBAR CONTROLS
 # =========================================================
 with st.sidebar:
     st.image("./assets/Groq.svg", width=150)
+    
+    # Model select dropdown to bypass Groq rate limits (Rate Limit 429 TPD)
+    model_name = st.selectbox(
+        "Select Groq LLM",
+        options=[
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it"
+        ],
+        index=0,
+        help="If you hit a Daily Token limit (Rate Limit 429), swap to Llama 3.1 8B or Mixtral for fresh quotas!"
+    )
+    
     groq_key = st.text_input(
         "Enter your Groq API key",
         value=os.getenv("GROQ_API_KEY", ""),
@@ -113,13 +122,36 @@ with st.sidebar:
         "Smartscrape Key", value=os.getenv("SCRAPEGRAPH_API_KEY", ""), type="password"
     )
 
-    if st.button("💾 Save Keys"):
+    if st.button("💾 Save Keys", use_container_width=True):
         st.session_state["GROQ_API_KEY"] = groq_key
         st.session_state["SCRAPEGRAPH_API_KEY"] = smartscrape_key
+        os.environ["GROQ_API_KEY"] = groq_key
+        os.environ["SCRAPEGRAPH_API_KEY"] = smartscrape_key
+        
+        # Force agent re-initialization with new credentials
+        if 'agent' in st.session_state:
+            del st.session_state['agent']
+            
+        st.success("Credentials updated! Re-initializing agent...")
+        st.rerun()
+        
     if groq_key or smartscrape_key:
-        st.success("Keys saved for this session")
+        st.caption("Credentials loaded for active session.")
 
     st.markdown("---")
+
+# =========================================================
+# AGENT DYNAMIC INITIALIZATION
+# =========================================================
+if 'agent' not in st.session_state or st.session_state.get('active_model') != model_name:
+    with st.spinner(f"🚀 Initializing Agent with {model_name}..."):
+        st.session_state.agent = AgenticShoppingAI(model_name=model_name)
+        st.session_state['active_model'] = model_name
+
+# =========================================================
+# SIDEBAR RAG DATABASE INSPECTOR
+# =========================================================
+with st.sidebar:
     st.subheader("📦 RAG Database Inspector")
     
     # Get total document count programmatically
