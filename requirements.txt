@@ -1,0 +1,17 @@
+streamlit
+protobuf==3.20.3
+langchain
+langgraph
+langchain-openai
+langchain-groq
+langchain-mcp-adapters>=0.2.0
+mcp>=1.27.0
+langchain-community
+chromadb
+sentence-transformers
+python-dotenv
+playwright
+scrapegraph-py
+beautifulsoup4
+pandas
+numpy
